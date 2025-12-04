@@ -72,81 +72,85 @@ def enrich_with_delta(record: dict, previous_record: dict) -> dict:
     return enriched_record
 
 
-# Handle environment variables
-env = Env()
-env.read_env()
+def main():
+    # Handle environment variables
+    env = Env()
+    env.read_env()
 
-# Override in env.txt for local development
-DEBUG = env.bool("DEBUG", default=False)
-INFO = env.bool("INFO", default=False)
+    # Override in env.txt for local development
+    DEBUG = env.bool("DEBUG", default=False)
+    INFO = env.bool("INFO", default=False)
 
-##############################
-# PocketCasts
-##############################
+    ##############################
+    # PocketCasts
+    ##############################
 
-# Get the statistics from PocketCasts
-record = get_statistics(env("POCKETCASTS_EMAIL"), env("POCKETCASTS_PASSWORD"))
+    # Get the statistics from PocketCasts
+    record = get_statistics(env("POCKETCASTS_EMAIL"), env("POCKETCASTS_PASSWORD"))
 
-# Delete the start date because we don't need it
-del record["timesStartedAt"]
+    # Delete the start date because we don't need it
+    del record["timesStartedAt"]
 
-# Convert everything to int
-record = dict((k, int(v)) for k, v in record.items())
+    # Convert everything to int
+    record = dict((k, int(v)) for k, v in record.items())
 
-##############################
-# Airtable
-##############################
+    ##############################
+    # Airtable
+    ##############################
 
-# Initialize Airtable API and get the table
-api = Api(env("AIRTABLE_API_KEY"))
-table = api.table(env("AIRTABLE_BASE_ID"), env("AIRTABLE_POCKETCASTS_TABLE"))
+    # Initialize Airtable API and get the table
+    api = Api(env("AIRTABLE_API_KEY"))
+    table = api.table(env("AIRTABLE_BASE_ID"), env("AIRTABLE_POCKETCASTS_TABLE"))
 
-# Get previous record to calculate delta(s)
-previous_records = table.all(
-    view="data",
-    max_records=1,
-    sort=["-#No"],
-    fields=[
-        "Delta (timeSilenceRemoval)",
-        "Delta (timeSkipping)",
-        "Delta (timeIntroSkipping)",
-        "Delta (timeVariableSpeed)",
-        "Delta (timeListened)",
-        "timeSilenceRemoval",
-        "timeSkipping",
-        "timeIntroSkipping",
-        "timeVariableSpeed",
-        "timeListened",
-    ],
-)
+    # Get previous record to calculate delta(s)
+    previous_records = table.all(
+        view="data",
+        max_records=1,
+        sort=["-#No"],
+        fields=[
+            "Delta (timeSilenceRemoval)",
+            "Delta (timeSkipping)",
+            "Delta (timeIntroSkipping)",
+            "Delta (timeVariableSpeed)",
+            "Delta (timeListened)",
+            "timeSilenceRemoval",
+            "timeSkipping",
+            "timeIntroSkipping",
+            "timeVariableSpeed",
+            "timeListened",
+        ],
+    )
 
-# Check if it is the first time we are doing it
-if previous_records:
-    # Enrich record with delta data
-    record = enrich_with_delta(record, previous_records[0]["fields"])
+    # Check if it is the first time we are doing it
+    if previous_records:
+        # Enrich record with delta data
+        record = enrich_with_delta(record, previous_records[0]["fields"])
 
-    # Allow to omit actually writing to the database by an environment variable
-    if not DEBUG:
-        # Insert it into Airtable - we need to be sure we want it
-        if (
-            previous_records[0]["fields"] != record
-            and record["Delta (timeListened)"] != 0
-        ):
+        # Allow to omit actually writing to the database by an environment variable
+        if not DEBUG:
+            # Insert it into Airtable - we need to be sure we want it
+            if (
+                previous_records[0]["fields"] != record
+                and record["Delta (timeListened)"] != 0
+            ):
+                table.create(record)
+                if INFO:
+                    print("[INFO] Written new entry to Airtable.")
+            else:
+                if INFO:
+                    print("[INFO] Skip writing empty entry.")
+    else:
+        # We are inserting for the first time
+        record = enrich_with_delta(record, record)
+
+        if not DEBUG:
             table.create(record)
             if INFO:
-                print("[INFO] Written new entry to Airtable.")
-        else:
-            if INFO:
-                print("[INFO] Skip writing empty entry.")
-else:
-    # We are inserting for the first time
-    record = enrich_with_delta(record, record)
+                print("[INFO] Written the first entry to Airtable.")
 
-    if not DEBUG:
-        table.create(record)
-        if INFO:
-            print("[INFO] Written the first entry to Airtable.")
+    # Print the data
+    print(json.dumps(record, sort_keys=True, indent=4))
 
 
-# Print the data
-print(json.dumps(record, sort_keys=True, indent=4))
+if __name__ == "__main__":
+    main()
