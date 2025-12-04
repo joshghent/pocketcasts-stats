@@ -1,19 +1,20 @@
-image: python:3.7-alpine
+image: ghcr.io/astral-sh/uv:python3.13-alpine
 
 variables:
   DOCKER_DRIVER: overlay2
 
 cache:
   paths:
-    - .pip
+    - .uv-cache
 
 before_script:
-  - python3 -V                           # Print out python version for debugging
-  - mkdir -p .pip
-  - python3 -m pip install -U pip
-  - pip --cache-dir=.pip install -r requirements.txt
+  - python3 -V # Print out python version for debugging
+  - uv --version # Print out uv version for debugging
+  - mkdir -p .uv-cache
+  - export UV_CACHE_DIR=.uv-cache
+  - uv sync --frozen
 
 build:
   stage: build
   script:
-  - python3 ./app.py
+    - uv run python app.py

@@ -1,11 +1,12 @@
 language: python
 python:
-  - "3.6"
+  - "3.13"
 install:
-  - pip install -r requirements.txt
-  - pip install codecov
+  - curl -LsSf https://astral.sh/uv/install.sh | sh
+  - source $HOME/.local/bin/env
+  - uv sync
 script:
-  - pytest
-  - pytest --cov=./
+  - uv run pytest
+  - uv run pytest --cov=./
 after_success:
-- codecov # It uses the CODECOV_TOKEN environment variable
+  - uv run codecov # It uses the CODECOV_TOKEN environment variable
