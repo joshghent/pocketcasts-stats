@@ -1,0 +1,24 @@
+[project]
+name = "pocketcasts-stats"
+version = "1.0.0"
+description = "Automatically fetch your Pocket Casts podcast listening statistics and store them in Airtable"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.32.0",
+    "pyairtable>=3.1.0",
+    "environs>=11.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
+]
