@@ -48,7 +48,7 @@ For the tool to work you'll need a [free Airtable account](https://airtable.com/
 
 3. Add the following repository secrets:
    - `POCKETCASTS_EMAIL`
-   - `POCKETCASTS_PASSWORT`
+   - `POCKETCASTS_PASSWORD`
    - `AIRTABLE_API_KEY`
    - `AIRTABLE_BASE_ID`
    - `AIRTABLE_POCKETCASTS_TABLE`
@@ -74,7 +74,7 @@ For the tool to work you'll need a [free Airtable account](https://airtable.com/
 | Variable | Description |
 |----------|-------------|
 | `POCKETCASTS_EMAIL` | Your PocketCasts login email |
-| `POCKETCASTS_PASSWORT` | Your PocketCasts password |
+| `POCKETCASTS_PASSWORD` | Your PocketCasts password |
 | `AIRTABLE_BASE_ID` | The ID of your Airtable base (starts with `app`) |
 | `AIRTABLE_API_KEY` | Your Airtable Personal Access Token |
 | `AIRTABLE_POCKETCASTS_TABLE` | The table name to store data (e.g., `PocketCasts`) |

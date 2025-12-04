@@ -27,7 +27,7 @@ jobs:
       - name: Run sync
         env:
           POCKETCASTS_EMAIL: ${{ secrets.POCKETCASTS_EMAIL }}
-          POCKETCASTS_PASSWORT: ${{ secrets.POCKETCASTS_PASSWORT }}
+          POCKETCASTS_PASSWORD: ${{ secrets.POCKETCASTS_PASSWORD }}
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
           AIRTABLE_POCKETCASTS_TABLE: ${{ secrets.AIRTABLE_POCKETCASTS_TABLE }}

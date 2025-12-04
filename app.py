@@ -85,7 +85,7 @@ INFO = env.bool("INFO", default=False)
 ##############################
 
 # Get the statistics from PocketCasts
-record = get_statistics(env("POCKETCASTS_EMAIL"), env("POCKETCASTS_PASSWORT"))
+record = get_statistics(env("POCKETCASTS_EMAIL"), env("POCKETCASTS_PASSWORD"))
 
 # Delete the start date because we don't need it
 del record["timesStartedAt"]
