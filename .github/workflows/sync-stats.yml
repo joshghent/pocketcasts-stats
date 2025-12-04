@@ -1,0 +1,35 @@
+name: Sync Pocket Casts Stats
+
+on:
+  # Run on a schedule (every 2 hours)
+  schedule:
+    - cron: "0 */2 * * *"
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run sync
+        env:
+          POCKETCASTS_EMAIL: ${{ secrets.POCKETCASTS_EMAIL }}
+          POCKETCASTS_PASSWORT: ${{ secrets.POCKETCASTS_PASSWORT }}
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          AIRTABLE_POCKETCASTS_TABLE: ${{ secrets.AIRTABLE_POCKETCASTS_TABLE }}
+          INFO: "true"
+        run: uv run python app.py
