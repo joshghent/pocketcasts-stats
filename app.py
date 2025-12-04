@@ -1,7 +1,8 @@
 import json
+
 from environs import Env
+from pyairtable import Api
 from requests import request
-from airtable import Airtable
 
 
 def get_statistics(username: str, password: str) -> dict:
@@ -21,9 +22,7 @@ def get_statistics(username: str, password: str) -> dict:
 
     # Login and get a tocken from PocketCasts
     login_url = "https://api.pocketcasts.com/user/login"
-    data = (
-        f'{{"email":"{username}","password":"{password}","scope":"webplayer"}}'
-    )
+    data = f'{{"email":"{username}","password":"{password}","scope":"webplayer"}}'
     headers = {"Origin": "https://play.pocketcasts.com"}
     response = request("POST", login_url, data=data, headers=headers).json()
 
@@ -98,14 +97,15 @@ record = dict((k, int(v)) for k, v in record.items())
 # Airtable
 ##############################
 
-# The API key for Airtable is provided by AIRTABLE_API_KEY automatically
-airtable = Airtable(env("AIRTABLE_BASE_ID"), env("AIRTABLE_POCKETCASTS_TABLE"))
+# Initialize Airtable API and get the table
+api = Api(env("AIRTABLE_API_KEY"))
+table = api.table(env("AIRTABLE_BASE_ID"), env("AIRTABLE_POCKETCASTS_TABLE"))
 
 # Get previous record to calculate delta(s)
-previous_record = airtable.get_all(
+previous_records = table.all(
     view="data",
-    maxRecords=1,
-    sort=[("#No", "desc")],
+    max_records=1,
+    sort=["-#No"],
     fields=[
         "Delta (timeSilenceRemoval)",
         "Delta (timeSkipping)",
@@ -121,18 +121,18 @@ previous_record = airtable.get_all(
 )
 
 # Check if it is the first time we are doing it
-if previous_record:
+if previous_records:
     # Enrich record with delta data
-    record = enrich_with_delta(record, previous_record[0]["fields"])
+    record = enrich_with_delta(record, previous_records[0]["fields"])
 
     # Allow to omit actually writing to the database by an environment variable
     if not DEBUG:
         # Insert it into Airtable - we need to be sure we want it
         if (
-            previous_record[0]["fields"] != record
+            previous_records[0]["fields"] != record
             and record["Delta (timeListened)"] != 0
         ):
-            airtable.insert(record)
+            table.create(record)
             if INFO:
                 print("[INFO] Written new entry to Airtable.")
         else:
@@ -143,7 +143,7 @@ else:
     record = enrich_with_delta(record, record)
 
     if not DEBUG:
-        airtable.insert(record)
+        table.create(record)
         if INFO:
             print("[INFO] Written the first entry to Airtable.")
 
